@@ -112,7 +112,7 @@ export default function InventoryConstraintsPage() {
           <div className="flex flex-col md:flex-row gap-4 items-end">
             <div className="space-y-2 flex-1">
               <label className="text-sm font-medium">Primary Component</label>
-              <Select value={selectedComp1} onValueChange={setSelectedComp1}>
+              <Select value={selectedComp1} onValueChange={(val) => setSelectedComp1(val || "")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a component..." />
                 </SelectTrigger>
@@ -132,7 +132,7 @@ export default function InventoryConstraintsPage() {
             
             <div className="space-y-2 flex-1">
               <label className="text-sm font-medium">Secondary Component</label>
-              <Select value={selectedComp2} onValueChange={setSelectedComp2}>
+              <Select value={selectedComp2} onValueChange={(val) => setSelectedComp2(val || "")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a component..." />
                 </SelectTrigger>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -22,12 +22,12 @@ export default function Home() {
               </p>
             </div>
             <div className="space-x-4 mt-8">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
-                <Link href="/configurator">Start Configuring</Link>
-              </Button>
-              <Button size="lg" variant="outline" className="text-white border-zinc-700 hover:bg-zinc-800" asChild>
-                <Link href="/products">View Models</Link>
-              </Button>
+              <Link href="/configurator" className={buttonVariants({ size: "lg", className: "bg-blue-600 hover:bg-blue-700 text-white" })}>
+                Start Configuring
+              </Link>
+              <Link href="/products" className={buttonVariants({ size: "lg", variant: "outline", className: "text-white border-zinc-700 hover:bg-zinc-800" })}>
+                View Models
+              </Link>
             </div>
           </div>
         </div>

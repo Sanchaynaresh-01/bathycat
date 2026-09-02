@@ -5,7 +5,7 @@ import { getComponentCategories, createComponent, updateComponent, deleteCompone
 import { ComponentCategory, Component } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Loader2, Plus, Layers, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -108,11 +108,9 @@ export default function AdminComponentsPage() {
         </div>
         
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Component
-            </Button>
+          <DialogTrigger className={buttonVariants()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Component
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -168,7 +166,7 @@ export default function AdminComponentsPage() {
           {loading ? (
              <div className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin" /></div>
           ) : (
-            <Accordion type="single" collapsible className="w-full">
+            <Accordion className="w-full">
               {categories.map((category) => (
                 <AccordionItem key={category.id} value={`cat-${category.id}`}>
                   <AccordionTrigger className="hover:no-underline hover:bg-muted/50 px-4 rounded-md">

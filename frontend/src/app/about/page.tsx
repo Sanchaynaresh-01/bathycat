@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
@@ -47,9 +47,9 @@ export default function AboutPage() {
         <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
           Start assembling your custom Bathycat USV today. See live pricing and submit your configuration for a formal quote.
         </p>
-        <Button size="lg" asChild>
-          <Link href="/configurator">Open Configurator</Link>
-        </Button>
+        <Link href="/configurator" className={buttonVariants({ size: "lg" })}>
+          Open Configurator
+        </Link>
       </section>
     </div>
   );

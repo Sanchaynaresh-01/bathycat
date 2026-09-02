@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, CheckCircle2, Edit2, Trash2, Edit3 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -186,7 +186,7 @@ export default function CustomerDashboardPage() {
                                 {config.name || `Config #${config.id}`}
                               </span>
                               {hasQuote && (
-                                <CheckCircle2 className="h-5 w-5 text-green-500" title="Quote Requested" />
+                                <span title="Quote Requested"><CheckCircle2 className="h-5 w-5 text-green-500" /></span>
                               )}
                             </div>
                             <span className="text-xs font-normal text-muted-foreground whitespace-nowrap">
@@ -216,8 +216,8 @@ export default function CustomerDashboardPage() {
                                 setNewName(config.name || `Config #${config.id}`);
                               }
                             }}>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" title="Rename"><Edit3 className="h-4 w-4" /></Button>
+                              <DialogTrigger className={buttonVariants({ variant: "outline", size: "sm" })} title="Rename">
+                                <Edit3 className="h-4 w-4" />
                               </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>

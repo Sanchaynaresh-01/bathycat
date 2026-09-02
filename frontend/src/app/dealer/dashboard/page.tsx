@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getApprovedQuotes } from "@/lib/api";
 import { Loader2, Eye } from "lucide-react";
@@ -91,11 +91,9 @@ export default function DealerDashboardPage() {
                       <TableCell>{new Date(quote.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-4 w-4 mr-2" />
-                              View
-                            </Button>
+                          <DialogTrigger className={buttonVariants({ variant: "outline", size: "sm" })}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
                           </DialogTrigger>
                           <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
                             <DialogHeader>

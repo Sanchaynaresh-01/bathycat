@@ -5,7 +5,7 @@ import { getProducts, createProduct } from "@/lib/api";
 import { Product } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -64,11 +64,9 @@ export default function AdminProductsPage() {
         </div>
         
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Button>
+          <DialogTrigger className={buttonVariants()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Product
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>

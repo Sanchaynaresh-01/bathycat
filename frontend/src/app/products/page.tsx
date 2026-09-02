@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { getProducts } from "@/lib/api";
 import { Product } from "@/types";
 import { Loader2, Anchor } from "lucide-react";
@@ -56,9 +56,9 @@ export default function ProductsPage() {
                 <p className="text-muted-foreground">{product.description}</p>
               </CardContent>
               <CardFooter>
-                <Button className="w-full" size="lg" asChild>
-                  <Link href="/configurator">Configure {product.name}</Link>
-                </Button>
+                <Link href="/configurator" className={buttonVariants({ className: "w-full", size: "lg" })}>
+                  Configure {product.name}
+                </Link>
               </CardFooter>
             </Card>
           ))}
