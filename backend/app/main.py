@@ -5,8 +5,9 @@ from app.core.config import settings
 from app.core.database import engine, Base
 # Import all models so SQLAlchemy knows about them before create_all
 from app.models.user import User
-from app.models.product import Product, ComponentCategory, Component
-from app.models.configuration import Configuration, ConfigurationComponent
+from app.models.product import Product
+from app.models.component import ComponentCategory, Component
+from app.models.configuration import Configuration
 from app.models.quote import Quote
 
 # Create all tables in the database (will not overwrite existing tables)
