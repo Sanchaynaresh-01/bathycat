@@ -13,7 +13,7 @@ export interface Component {
   description: string | null;
   price_modifier: number;
   weight: number;
-  attributes: Record<string, any> | null;
+  attributes?: Record<string, any> | null;
   is_active: boolean;
 }
 

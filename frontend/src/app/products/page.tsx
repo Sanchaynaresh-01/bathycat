@@ -8,19 +8,21 @@ import { getProducts } from "@/lib/api";
 import { Product } from "@/types";
 import { Loader2, Anchor } from "lucide-react";
 
+import { DEFAULT_PRODUCTS } from "@/lib/catalogData";
+
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchProducts() {
       try {
         const data = await getProducts();
-        setProducts(data);
+        if (data && data.length > 0) {
+          setProducts(data);
+        }
       } catch (error) {
-        console.error("Failed to load products", error);
-      } finally {
-        setLoading(false);
+        console.error("Failed to load live products, using cached catalog", error);
       }
     }
     fetchProducts();
