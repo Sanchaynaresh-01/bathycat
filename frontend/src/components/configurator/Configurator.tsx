@@ -627,26 +627,55 @@ export function Configurator() {
           {currentStep === 4 && (
             renderCategorySelectionList(
               getCategoriesForGroups(["03 POWER SYSTEM", "POWER SYSTEM", "POWER"]),
-              "Battery & Power Architecture",
-              "Select battery pack capacity (mAh), voltage (S), MPPT solar auxiliary panels, and BMS safeguards."
+              "Battery, Solar & Power Distribution",
+              "Select battery pack capacity (mAh), voltage (S), pack configuration, MPPT solar panels, BMS safeguards, and power distribution rails."
             )
           )}
 
-          {/* STEP 5: GPS, COMMUNICATION & NAVIGATION */}
+          {/* STEP 5: GPS, COMMUNICATION, AUTONOMY & FAILSAFES */}
           {currentStep === 5 && (
             renderCategorySelectionList(
-              getCategoriesForGroups(["06 NAVIGATION", "NAVIGATION", "04 CONTROLLER", "05 COMMUNICATION", "CONTROLLER", "COMMUNICATION"]),
-              "GPS, Telemetry & Autopilot Navigation",
-              "Equip sub-meter DGPS or centimeter RTK positioning, autopilot boards, and long-range telemetry."
+              getCategoriesForGroups([
+                "04 CONTROLLER",
+                "05 COMMUNICATION",
+                "06 NAVIGATION",
+                "10 AUTONOMY",
+                "11 SAFETY & FAILSAFE",
+                "CONTROLLER",
+                "COMMUNICATION",
+                "NAVIGATION",
+                "AUTONOMY",
+                "SAFETY",
+                "FAILSAFE"
+              ]),
+              "GPS, Autopilot, Telemetry & Safety Failsafes",
+              "Configure microcontrollers, long-range telemetry links, sub-meter/RTK GNSS, autonomous survey modes, and emergency failsafe actions."
             )
           )}
 
-          {/* STEP 6: SENSORS, BATHYMETRY & PAYLOAD */}
+          {/* STEP 6: SENSORS, BATHYMETRY, VISION, LOGGING & ADD-ONS */}
           {currentStep === 6 && (
             renderCategorySelectionList(
-              getCategoriesForGroups(["08 BATHYMETRY", "BATHYMETRY", "07 SENSORS", "SENSORS", "09 VISION", "VISION", "14 CUSTOM", "ADD ON"]),
-              "Hydrographic Sonars, Sensors & Payloads",
-              "Equip single-beam or multibeam echosounders, multiparameter water quality probes, and cameras."
+              getCategoriesForGroups([
+                "07 SENSORS",
+                "08 BATHYMETRY",
+                "09 VISION & LIGHTING",
+                "12 DATA & LOGGING",
+                "13 DASHBOARD & APP",
+                "14 CUSTOM & ADD ON",
+                "SENSORS",
+                "BATHYMETRY",
+                "VISION",
+                "LIGHTING",
+                "DATA",
+                "LOGGING",
+                "DASHBOARD",
+                "APP",
+                "CUSTOM",
+                "ADD ON"
+              ]),
+              "Hydrographic Sonars, Sensors & Mission Payloads",
+              "Equip single-beam or multibeam echosounders, water quality probes, inspection cameras, data storage loggers, mission dashboard apps, and robotic add-ons."
             )
           )}
 
@@ -659,7 +688,7 @@ export function Configurator() {
                 </div>
                 <h2 className="text-2xl font-bold tracking-tight text-foreground">Review Your Complete Configuration</h2>
                 <p className="text-muted-foreground text-sm mt-1">
-                  Inspect your chosen platform specifications, component line items, and estimated price before requesting a formal quotation.
+                  Inspect your chosen platform specifications, component line items across all 14 equipment categories, and estimated price before requesting a quotation.
                 </p>
               </div>
 
@@ -684,16 +713,19 @@ export function Configurator() {
                 </CardContent>
               </Card>
 
-              {/* Grouped Component Summary */}
+              {/* Grouped Component Summary covering all 14 groups */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground">Configured Component Breakdown</h3>
 
                 {[
-                  { title: "Material & Hull Options", stepNum: 2, groups: ["01 PLATFORM", "PLATFORM"] },
-                  { title: "Propulsion & Thrusters", stepNum: 3, groups: ["02 PROPULSION", "PROPULSION"] },
-                  { title: "Battery & Power System", stepNum: 4, groups: ["03 POWER SYSTEM", "POWER"] },
-                  { title: "Navigation, Autopilot & Telemetry", stepNum: 5, groups: ["06 NAVIGATION", "04 CONTROLLER", "05 COMMUNICATION"] },
-                  { title: "Sonars, Sensors & Payloads", stepNum: 6, groups: ["08 BATHYMETRY", "07 SENSORS", "09 VISION", "14 CUSTOM"] },
+                  { title: "Material & Hull Configuration", stepNum: 2, groups: ["01 PLATFORM", "PLATFORM"] },
+                  { title: "Propulsion & Thruster Systems", stepNum: 3, groups: ["02 PROPULSION", "PROPULSION"] },
+                  { title: "Battery, Solar & Power Distribution", stepNum: 4, groups: ["03 POWER SYSTEM", "POWER"] },
+                  { title: "Flight Controllers, Telemetry & Autopilot", stepNum: 5, groups: ["04 CONTROLLER", "05 COMMUNICATION", "CONTROLLER", "COMMUNICATION"] },
+                  { title: "Positioning, Autonomy & Failsafes", stepNum: 5, groups: ["06 NAVIGATION", "10 AUTONOMY", "11 SAFETY & FAILSAFE", "NAVIGATION", "AUTONOMY", "SAFETY", "FAILSAFE"] },
+                  { title: "Bathymetric Sonars & Environmental Sensors", stepNum: 6, groups: ["07 SENSORS", "08 BATHYMETRY", "SENSORS", "BATHYMETRY"] },
+                  { title: "Vision, Lighting & Inspection Cameras", stepNum: 6, groups: ["09 VISION & LIGHTING", "VISION", "LIGHTING"] },
+                  { title: "Data Logging, Apps & Custom Add-ons", stepNum: 6, groups: ["12 DATA & LOGGING", "13 DASHBOARD & APP", "14 CUSTOM & ADD ON", "DATA", "DASHBOARD", "CUSTOM", "ADD ON"] },
                 ].map((section) => {
                   const sectionCats = getCategoriesForGroups(section.groups);
                   const selectedInSection = sectionCats.flatMap(cat => 
