@@ -59,6 +59,116 @@ const STEPS = [
   { id: 8, title: "Request Quote", description: "Submit details", icon: FileText },
 ];
 
+// Super Class Metadata mapping matching the 14 Infographic Blocks
+export const SUPER_CLASS_META: Record<string, { title: string; number: string; shortName: string; icon: any; subtitle: string }> = {
+  "01 PLATFORM": {
+    number: "01",
+    shortName: "Platform",
+    title: "01 PLATFORM",
+    icon: Layers,
+    subtitle: "Catamaran hull construction, buoyancy ratings, and payload mounting options."
+  },
+  "02 PROPULSION": {
+    number: "02",
+    shortName: "Propulsion",
+    title: "02 PROPULSION",
+    icon: Zap,
+    subtitle: "Motor KV ratings, thruster count, differential/vector steering, and ESC current limits."
+  },
+  "03 POWER SYSTEM": {
+    number: "03",
+    shortName: "Power System",
+    title: "03 POWER SYSTEM",
+    icon: BatteryCharging,
+    subtitle: "Battery voltage (S), capacity (mAh), configuration (1P-4P), solar panels, and BMS protection."
+  },
+  "04 CONTROLLER": {
+    number: "04",
+    shortName: "Controller",
+    title: "04 CONTROLLER",
+    icon: Cpu,
+    subtitle: "Flight microcontrollers, edge processing units, and modular expansion boards."
+  },
+  "05 COMMUNICATION": {
+    number: "05",
+    shortName: "Communication",
+    title: "05 COMMUNICATION",
+    icon: Radio,
+    subtitle: "Primary and long-range RF telemetry (ELRS/LoRa/4G), and full-duplex communication modes."
+  },
+  "06 NAVIGATION": {
+    number: "06",
+    shortName: "Navigation",
+    title: "06 NAVIGATION",
+    icon: Compass,
+    subtitle: "High-precision GNSS, centimeter-level RTK positioning, and compass IMU sensors."
+  },
+  "07 SENSORS": {
+    number: "07",
+    shortName: "Sensors",
+    title: "07 SENSORS",
+    icon: Droplets,
+    subtitle: "Multiparameter water quality probes, turbidity sensors, and environmental monitoring."
+  },
+  "08 BATHYMETRY": {
+    number: "08",
+    shortName: "Bathymetry",
+    title: "08 BATHYMETRY",
+    icon: Waves,
+    subtitle: "Single-beam, dual-frequency, and multibeam sounding sonars with GPS mapping."
+  },
+  "09 VISION & LIGHTING": {
+    number: "09",
+    shortName: "Vision & Lighting",
+    title: "09 VISION & LIGHTING",
+    icon: Camera,
+    subtitle: "Underwater inspection cameras, 4K resolution, streaming, and high-power flood lighting."
+  },
+  "10 AUTONOMY": {
+    number: "10",
+    shortName: "Autonomy",
+    title: "10 AUTONOMY",
+    icon: Sliders,
+    subtitle: "Autonomous grid survey, waypoints, mission modes, and station keeping."
+  },
+  "11 SAFETY & FAILSAFE": {
+    number: "11",
+    shortName: "Safety & Failsafe",
+    title: "11 SAFETY & FAILSAFE",
+    icon: ShieldAlert,
+    subtitle: "Automated failsafe procedures for signal loss, low battery, GPS loss, and water ingress."
+  },
+  "12 DATA & LOGGING": {
+    number: "12",
+    shortName: "Data & Logging",
+    title: "12 DATA & LOGGING",
+    icon: FileText,
+    subtitle: "MicroSD/Cloud storage, telemetry parameters recorded, and hydrographic export formats."
+  },
+  "13 DASHBOARD & APP": {
+    number: "13",
+    shortName: "Dashboard & App",
+    title: "13 DASHBOARD & APP",
+    icon: Layers,
+    subtitle: "Ground station control levels (Basic, Advanced, Professional) and mobile/web platforms."
+  },
+  "14 CUSTOM & ADD ON": {
+    number: "14",
+    shortName: "Custom & Add-ons",
+    title: "14 CUSTOM & ADD ON",
+    icon: Plus,
+    subtitle: "Water sampling modules, robotic arms, obstacle avoidance, and custom user components."
+  },
+};
+
+export const STEP_SUPER_CLASSES: Record<number, string[]> = {
+  2: ["01 PLATFORM"],
+  3: ["02 PROPULSION"],
+  4: ["03 POWER SYSTEM"],
+  5: ["04 CONTROLLER", "05 COMMUNICATION", "06 NAVIGATION", "10 AUTONOMY", "11 SAFETY & FAILSAFE"],
+  6: ["07 SENSORS", "08 BATHYMETRY", "09 VISION & LIGHTING", "12 DATA & LOGGING", "13 DASHBOARD & APP", "14 CUSTOM & ADD ON"]
+};
+
 export function Configurator() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -73,6 +183,18 @@ export function Configurator() {
   const [savingConfig, setSavingConfig] = useState(false);
   const [submittingQuote, setSubmittingQuote] = useState(false);
   const [quoteSuccess, setQuoteSuccess] = useState<{ id?: string; name?: string } | null>(null);
+
+  // Active Super Class per step (for steps with multiple super classes like 5 & 6)
+  const [activeSuperClassByStep, setActiveSuperClassByStep] = useState<Record<number, string>>({
+    2: "01 PLATFORM",
+    3: "02 PROPULSION",
+    4: "03 POWER SYSTEM",
+    5: "04 CONTROLLER",
+    6: "07 SENSORS"
+  });
+
+  // Active Category per Super Class (category id or "all")
+  const [activeCategoryBySuperClass, setActiveCategoryBySuperClass] = useState<Record<string, number | "all">>({});
 
   // Custom Component Form State (Block 14 in infographic)
   const [showCustomModal, setShowCustomModal] = useState(false);
@@ -539,19 +661,114 @@ https://bathycat-five.vercel.app/configurator
     return categories.filter(c => groupNames.some(g => c.group?.toUpperCase().includes(g.toUpperCase())));
   };
 
-  // Render Component Selection Grid for given categories
-  const renderCategorySelectionList = (cats: ComponentCategory[], stepTitle: string, stepSubtitle: string, isStep6: boolean = false) => {
+  // Render Super Class tabs and separate category sections with secondary navigation
+  const renderSuperClassAndCategoryLayout = (stepNumber: number) => {
+    const superClasses = STEP_SUPER_CLASSES[stepNumber] || [];
+    const activeSuperClass = activeSuperClassByStep[stepNumber] || superClasses[0];
+    const scIndex = superClasses.indexOf(activeSuperClass);
+    const scMeta = SUPER_CLASS_META[activeSuperClass] || {
+      number: "",
+      shortName: activeSuperClass,
+      title: activeSuperClass,
+      icon: Layers,
+      subtitle: ""
+    };
+
+    // Filter categories belonging to active super class
+    const scCategories = categories.filter(c =>
+      c.group?.toUpperCase().includes(activeSuperClass.toUpperCase()) ||
+      activeSuperClass.toUpperCase().includes(c.group?.toUpperCase() || "")
+    );
+
+    const activeCatId = activeCategoryBySuperClass[activeSuperClass] !== undefined
+      ? activeCategoryBySuperClass[activeSuperClass]
+      : (scCategories[0]?.id ?? "all");
+
+    const currentCat = scCategories.find(c => c.id === activeCatId) || scCategories[0];
+    const currentCatIndex = scCategories.findIndex(c => c.id === currentCat?.id);
+
+    // Prev and Next category logic
+    const prevCat = currentCatIndex > 0 ? scCategories[currentCatIndex - 1] : null;
+    const nextCat = currentCatIndex >= 0 && currentCatIndex < scCategories.length - 1 ? scCategories[currentCatIndex + 1] : null;
+
+    // Prev and Next super class logic
+    const prevSC = scIndex > 0 ? superClasses[scIndex - 1] : null;
+    const nextSC = scIndex >= 0 && scIndex < superClasses.length - 1 ? superClasses[scIndex + 1] : null;
+
+    // Count configured categories in current super class
+    const configuredCatsCount = scCategories.filter(cat => (selectedComponents[cat.id] || []).length > 0).length;
+
+    const handleSelectSuperClass = (scKey: string) => {
+      setActiveSuperClassByStep(prev => ({ ...prev, [stepNumber]: scKey }));
+      const targetCats = categories.filter(c =>
+        c.group?.toUpperCase().includes(scKey.toUpperCase()) ||
+        scKey.toUpperCase().includes(c.group?.toUpperCase() || "")
+      );
+      if (!activeCategoryBySuperClass[scKey] && targetCats.length > 0) {
+        setActiveCategoryBySuperClass(prev => ({ ...prev, [scKey]: targetCats[0].id }));
+      }
+    };
+
+    const handleCategorySelect = (catId: number | "all") => {
+      setActiveCategoryBySuperClass(prev => ({ ...prev, [activeSuperClass]: catId }));
+    };
+
+    const goToPrevCategory = () => {
+      if (prevCat) {
+        setActiveCategoryBySuperClass(prev => ({ ...prev, [activeSuperClass]: prevCat.id }));
+        window.scrollTo({ top: 180, behavior: "smooth" });
+      } else if (prevSC) {
+        handleSelectSuperClass(prevSC);
+        const prevCats = categories.filter(c =>
+          c.group?.toUpperCase().includes(prevSC.toUpperCase()) ||
+          prevSC.toUpperCase().includes(c.group?.toUpperCase() || "")
+        );
+        if (prevCats.length > 0) {
+          setActiveCategoryBySuperClass(prev => ({ ...prev, [prevSC]: prevCats[prevCats.length - 1].id }));
+        }
+        window.scrollTo({ top: 180, behavior: "smooth" });
+      } else {
+        handleBack();
+      }
+    };
+
+    const goToNextCategory = () => {
+      if (nextCat) {
+        setActiveCategoryBySuperClass(prev => ({ ...prev, [activeSuperClass]: nextCat.id }));
+        window.scrollTo({ top: 180, behavior: "smooth" });
+      } else if (nextSC) {
+        handleSelectSuperClass(nextSC);
+        const nextCats = categories.filter(c =>
+          c.group?.toUpperCase().includes(nextSC.toUpperCase()) ||
+          nextSC.toUpperCase().includes(c.group?.toUpperCase() || "")
+        );
+        if (nextCats.length > 0) {
+          setActiveCategoryBySuperClass(prev => ({ ...prev, [nextSC]: nextCats[0].id }));
+        }
+        window.scrollTo({ top: 180, behavior: "smooth" });
+      } else {
+        handleNext();
+      }
+    };
+
     return (
-      <div className="space-y-8 animate-in fade-in-50 duration-300">
+      <div className="space-y-6 animate-in fade-in-50 duration-300">
+        {/* Step Header */}
         <div className="border-b pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">{stepTitle}</h2>
-            <p className="text-muted-foreground text-sm mt-1">{stepSubtitle}</p>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary mb-2">
+              {(() => {
+                const StepIcon = STEPS[stepNumber - 1]?.icon || Layers;
+                return <StepIcon className="h-3.5 w-3.5" />;
+              })()} Step {stepNumber} of 8: {STEPS[stepNumber - 1]?.title}
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">{STEPS[stepNumber - 1]?.title} Configuration</h2>
+            <p className="text-muted-foreground text-sm mt-1">{STEPS[stepNumber - 1]?.description}</p>
           </div>
-          {isStep6 && (
-            <Button 
-              onClick={() => setShowCustomModal(true)} 
-              variant="outline" 
+          {stepNumber === 6 && (
+            <Button
+              onClick={() => setShowCustomModal(true)}
+              variant="outline"
               className="border-primary/50 text-primary hover:bg-primary/10 gap-1.5 shrink-0"
             >
               <Plus className="h-4 w-4" /> Add Custom Component
@@ -559,84 +776,350 @@ https://bathycat-five.vercel.app/configurator
           )}
         </div>
 
-        {cats.length === 0 ? (
-          <div className="p-8 text-center border rounded-xl bg-muted/20">
-            <p className="text-muted-foreground">Options loading or none available for this step.</p>
+        {/* 1. SUPER CLASS TABS (For steps with multiple super classes, like Step 5 & 6) */}
+        {superClasses.length > 1 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+              <span className="font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                <Layers className="h-3.5 w-3.5 text-primary" /> Super Classes in Step {stepNumber}
+              </span>
+              <span className="font-mono">
+                {scIndex + 1} of {superClasses.length} Classes
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
+              {superClasses.map((scKey) => {
+                const meta = SUPER_CLASS_META[scKey] || { title: scKey, shortName: scKey, icon: Layers };
+                const Icon = meta.icon;
+                const isSCActive = scKey === activeSuperClass;
+                const scCats = categories.filter(c =>
+                  c.group?.toUpperCase().includes(scKey.toUpperCase()) ||
+                  scKey.toUpperCase().includes(c.group?.toUpperCase() || "")
+                );
+                const scSelected = scCats.reduce((acc, cat) => acc + (selectedComponents[cat.id]?.length || 0), 0);
+
+                return (
+                  <button
+                    key={scKey}
+                    type="button"
+                    onClick={() => handleSelectSuperClass(scKey)}
+                    className={`flex flex-col p-2.5 rounded-xl border text-left transition-all relative select-none ${
+                      isSCActive
+                        ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary"
+                        : "border-border/70 hover:border-primary/40 hover:bg-muted/30"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full mb-1">
+                      <Icon className={`h-4 w-4 ${isSCActive ? "text-primary" : "text-muted-foreground"}`} />
+                      {scSelected > 0 ? (
+                        <span className="h-4 min-w-4 px-1 rounded-full bg-emerald-500 text-white text-[9px] font-bold flex items-center justify-center">
+                          {scSelected}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground font-mono">{scCats.length}</span>
+                      )}
+                    </div>
+                    <span className={`text-xs font-bold leading-tight line-clamp-1 ${isSCActive ? "text-primary" : "text-foreground"}`}>
+                      {meta.title}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                      {meta.shortName}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 2. SECONDARY NAV FOR CATEGORIES (The user's direct requirement!) */}
+        <div className="bg-card/70 border border-border/80 rounded-xl p-3 shadow-sm space-y-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Sliders className="h-3.5 w-3.5 text-primary" />
+                Secondary Nav: Categories in {scMeta.title}
+              </span>
+              <p className="text-xs text-muted-foreground mt-0.5">{scMeta.subtitle}</p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge variant="outline" className="text-[10px] font-mono">
+                {configuredCatsCount} of {scCategories.length} Configured
+              </Badge>
+              {activeSuperClass.includes("14") && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowCustomModal(true)}
+                  className="h-7 text-xs border-primary/40 text-primary hover:bg-primary/10 gap-1"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Custom Form
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Horizontal scrollable category tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none pt-1">
+            {scCategories.map((cat, idx) => {
+              const isCatActive = activeCatId === cat.id;
+              const catSelectedCount = (selectedComponents[cat.id] || []).length;
+              const isConfigured = catSelectedCount > 0;
+
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleCategorySelect(cat.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all select-none ${
+                    isCatActive
+                      ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20"
+                      : "bg-muted/40 hover:bg-muted text-foreground/80 hover:text-foreground border border-border/50"
+                  }`}
+                >
+                  <span className={`h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                    isCatActive
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : isConfigured
+                      ? "bg-emerald-500/20 text-emerald-500 font-bold"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {isConfigured ? <Check className="h-2.5 w-2.5 stroke-[3]" /> : idx + 1}
+                  </span>
+                  <span>{cat.name}</span>
+                  {isConfigured && (
+                    <span className={`text-[10px] px-1 rounded font-mono ${
+                      isCatActive ? "bg-primary-foreground/30 text-primary-foreground" : "bg-emerald-500/10 text-emerald-500 font-bold"
+                    }`}>
+                      {catSelectedCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={() => handleCategorySelect("all")}
+              className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all select-none border ${
+                activeCatId === "all"
+                  ? "bg-primary text-primary-foreground shadow-sm font-semibold"
+                  : "bg-muted/20 hover:bg-muted/50 text-muted-foreground hover:text-foreground border-dashed border-border"
+              }`}
+            >
+              View All ({scCategories.length})
+            </button>
+          </div>
+        </div>
+
+        {/* 3. SEPARATE SECTION FOR EACH CATEGORY */}
+        {activeCatId !== "all" && currentCat ? (
+          <div className="space-y-4">
+            <div className="space-y-4 p-5 rounded-xl border border-border/70 bg-card/60 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-2 border-b pb-3">
+                <div>
+                  <div className="text-[11px] font-mono text-primary font-semibold uppercase tracking-wider mb-0.5">
+                    {scMeta.title} • Category {currentCatIndex + 1} of {scCategories.length}
+                  </div>
+                  <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+                    {currentCat.name}
+                    {(selectedComponents[currentCat.id] || []).length > 0 && (
+                      <Badge variant="secondary" className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+                        {(selectedComponents[currentCat.id] || []).length} Selected
+                      </Badge>
+                    )}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {currentCat.is_multiple_allowed ? "Multiple choices allowed — select all that apply for your mission." : "Single choice required — choose one component for this category."}
+                  </p>
+                </div>
+
+                {/* Special Accuracy guide for Navigation System */}
+                {currentCat.name.toLowerCase().includes("navigation system") && (
+                  <div className="flex flex-wrap gap-1 text-[10px] font-mono text-muted-foreground">
+                    <span className="px-1.5 py-0.5 bg-muted rounded">GPS: ~Meter</span>
+                    <span className="px-1.5 py-0.5 bg-muted rounded">DGPS: Sub-meter</span>
+                    <span className="px-1.5 py-0.5 bg-primary/10 text-primary rounded font-semibold">RTK: 1-2 cm</span>
+                  </div>
+                )}
+              </div>
+
+              {/* All Components for this category listed in responsive grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1">
+                {currentCat.components?.map((comp) => {
+                  const isSelected = (selectedComponents[currentCat.id] || []).some((c) => c.id === comp.id);
+
+                  return (
+                    <Card
+                      key={comp.id}
+                      onClick={() => handleComponentToggle(currentCat.id, comp, currentCat.is_multiple_allowed)}
+                      className={`cursor-pointer transition-all duration-200 border-2 select-none flex flex-col justify-between ${
+                        isSelected
+                          ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary"
+                          : "border-border/70 hover:border-primary/50 hover:bg-muted/30"
+                      }`}
+                    >
+                      <CardHeader className="p-3.5 pb-1.5">
+                        <CardTitle className="text-xs sm:text-sm font-semibold flex justify-between items-start gap-2">
+                          <span>{comp.name}</span>
+                          <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                            isSelected ? "bg-primary text-primary-foreground" : "border border-border/80"
+                          }`}>
+                            {isSelected && <Check className="h-2.5 w-2.5 stroke-[3]" />}
+                          </div>
+                        </CardTitle>
+                        <CardDescription className="text-xs font-semibold text-primary pt-0.5">
+                          {comp.price_modifier > 0
+                            ? `+Rs. ${comp.price_modifier.toLocaleString()}`
+                            : "Included"}
+                        </CardDescription>
+                      </CardHeader>
+                      {comp.description && (
+                        <CardContent className="p-3.5 pt-0 text-[11px] text-muted-foreground leading-normal">
+                          {comp.description}
+                        </CardContent>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Block 14 Inline Custom Component Builder if on Block 14 */}
+              {activeSuperClass.includes("14") && (
+                <div className="mt-6 pt-4 border-t border-border/60 bg-muted/20 p-4 rounded-xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <Plus className="h-4 w-4 text-primary" /> Add Your Own Custom Instrument / Sensor
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        Integrate bespoke water samplers, acoustic pingers, or specialized sensors directly into your build.
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => setShowCustomModal(true)}
+                      className="text-xs gap-1"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Open Custom Form
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Category Footer Navigation Controls */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-border/40 mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPrevCategory}
+                  className="w-full sm:w-auto text-xs"
+                >
+                  <ChevronLeft className="mr-1 h-3.5 w-3.5" />
+                  {prevCat ? `Previous: ${prevCat.name}` : prevSC ? `Prev: ${SUPER_CLASS_META[prevSC]?.shortName || prevSC}` : `Back to ${STEPS[stepNumber - 2]?.title || "Previous Step"}`}
+                </Button>
+
+                <div className="text-xs font-mono text-muted-foreground text-center">
+                  Category {currentCatIndex + 1} of {scCategories.length} in <strong className="text-foreground">{scMeta.shortName}</strong>
+                </div>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={goToNextCategory}
+                  className="w-full sm:w-auto text-xs font-semibold gap-1"
+                >
+                  {nextCat ? (
+                    <>Next: {nextCat.name} <ChevronRight className="ml-1 h-3.5 w-3.5" /></>
+                  ) : nextSC ? (
+                    <>Next Class: ${SUPER_CLASS_META[nextSC]?.shortName || nextSC} <ChevronRight className="ml-1 h-3.5 w-3.5" /></>
+                  ) : (
+                    <>Continue to ${STEPS[stepNumber]?.title || "Next Step"} <ChevronRight className="ml-1 h-3.5 w-3.5" /></>
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         ) : (
-          cats.map((cat) => {
-            const currentSelected = selectedComponents[cat.id] || [];
-            
-            // Special accuracy helper for Navigation System
-            const isNavSystem = cat.name.toLowerCase().includes("navigation system");
+          /* View All Categories Mode */
+          <div className="space-y-6">
+            {scCategories.map((cat, catIdx) => {
+              const currentSelected = selectedComponents[cat.id] || [];
+              const isNavSystem = cat.name.toLowerCase().includes("navigation system");
 
-            return (
-              <div key={cat.id} className="space-y-3 p-4 rounded-xl border border-border/50 bg-card/50">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1">
-                  <div>
-                    <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-                      {cat.name}
-                      {currentSelected.length > 0 && (
-                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
-                          {currentSelected.length} Selected
-                        </Badge>
-                      )}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {cat.is_multiple_allowed ? "Select one or more options" : "Select one option"}
-                    </p>
+              return (
+                <div key={cat.id} className="space-y-3 p-4 rounded-xl border border-border/50 bg-card/50">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1">
+                    <div>
+                      <div className="text-[10px] font-mono text-primary uppercase">
+                        Category {catIdx + 1} of {scCategories.length}
+                      </div>
+                      <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                        {cat.name}
+                        {currentSelected.length > 0 && (
+                          <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
+                            {currentSelected.length} Selected
+                          </Badge>
+                        )}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {cat.is_multiple_allowed ? "Select one or more options" : "Select one option"}
+                      </p>
+                    </div>
+
+                    {isNavSystem && (
+                      <div className="flex flex-wrap gap-1 text-[10px] font-mono text-muted-foreground">
+                        <span className="px-1.5 py-0.5 bg-muted rounded">GPS: ~Meter</span>
+                        <span className="px-1.5 py-0.5 bg-muted rounded">DGPS: Sub-meter</span>
+                        <span className="px-1.5 py-0.5 bg-primary/10 text-primary rounded font-semibold">RTK: 1-2 cm</span>
+                      </div>
+                    )}
                   </div>
 
-                  {isNavSystem && (
-                    <div className="flex flex-wrap gap-1 text-[10px] font-mono text-muted-foreground">
-                      <span className="px-1.5 py-0.5 bg-muted rounded">GPS: ~Meter Level</span>
-                      <span className="px-1.5 py-0.5 bg-muted rounded">DGPS: Sub-meter</span>
-                      <span className="px-1.5 py-0.5 bg-primary/10 text-primary rounded font-semibold">RTK: 1-2 cm Accuracy</span>
-                    </div>
-                  )}
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {cat.components?.map((comp) => {
+                      const isSelected = currentSelected.some((c) => c.id === comp.id);
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {cat.components?.map((comp) => {
-                    const isSelected = currentSelected.some((c) => c.id === comp.id);
-
-                    return (
-                      <Card
-                        key={comp.id}
-                        onClick={() => handleComponentToggle(cat.id, comp, cat.is_multiple_allowed)}
-                        className={`cursor-pointer transition-all duration-200 border-2 select-none flex flex-col justify-between ${
-                          isSelected
-                            ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary"
-                            : "border-border/70 hover:border-primary/50 hover:bg-muted/30"
-                        }`}
-                      >
-                        <CardHeader className="p-3.5 pb-1.5">
-                          <CardTitle className="text-xs sm:text-sm font-semibold flex justify-between items-start gap-2">
-                            <span>{comp.name}</span>
-                            <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                              isSelected ? "bg-primary text-primary-foreground" : "border border-border/80"
-                            }`}>
-                              {isSelected && <Check className="h-2.5 w-2.5 stroke-[3]" />}
-                            </div>
-                          </CardTitle>
-                          <CardDescription className="text-xs font-semibold text-primary pt-0.5">
-                            {comp.price_modifier > 0
-                              ? `+Rs. ${comp.price_modifier.toLocaleString()}`
-                              : "Included"}
-                          </CardDescription>
-                        </CardHeader>
-                        {comp.description && (
-                          <CardContent className="p-3.5 pt-0 text-[11px] text-muted-foreground leading-normal">
-                            {comp.description}
-                          </CardContent>
-                        )}
-                      </Card>
-                    );
-                  })}
+                      return (
+                        <Card
+                          key={comp.id}
+                          onClick={() => handleComponentToggle(cat.id, comp, cat.is_multiple_allowed)}
+                          className={`cursor-pointer transition-all duration-200 border-2 select-none flex flex-col justify-between ${
+                            isSelected
+                              ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary"
+                              : "border-border/70 hover:border-primary/50 hover:bg-muted/30"
+                          }`}
+                        >
+                          <CardHeader className="p-3.5 pb-1.5">
+                            <CardTitle className="text-xs sm:text-sm font-semibold flex justify-between items-start gap-2">
+                              <span>{comp.name}</span>
+                              <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                                isSelected ? "bg-primary text-primary-foreground" : "border border-border/80"
+                              }`}>
+                                {isSelected && <Check className="h-2.5 w-2.5 stroke-[3]" />}
+                              </div>
+                            </CardTitle>
+                            <CardDescription className="text-xs font-semibold text-primary pt-0.5">
+                              {comp.price_modifier > 0
+                                ? `+Rs. ${comp.price_modifier.toLocaleString()}`
+                                : "Included"}
+                            </CardDescription>
+                          </CardHeader>
+                          {comp.description && (
+                            <CardContent className="p-3.5 pt-0 text-[11px] text-muted-foreground leading-normal">
+                              {comp.description}
+                            </CardContent>
+                          )}
+                        </Card>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
     );
@@ -916,79 +1399,19 @@ https://bathycat-five.vercel.app/configurator
           )}
 
           {/* STEP 2: MATERIAL & PLATFORM CONFIGURATION (01 PLATFORM) */}
-          {currentStep === 2 && (
-            renderCategorySelectionList(
-              getCategoriesForGroups(["01 PLATFORM", "PLATFORM"]),
-              "Material & Platform Configuration",
-              "Select hull construction materials, maximum payload buoyancy, and sensor rail mounts."
-            )
-          )}
+          {currentStep === 2 && renderSuperClassAndCategoryLayout(2)}
 
           {/* STEP 3: PROPULSION & MOTORS (02 PROPULSION) */}
-          {currentStep === 3 && (
-            renderCategorySelectionList(
-              getCategoriesForGroups(["02 PROPULSION", "PROPULSION"]),
-              "Propulsion & Thruster System",
-              "Configure motor KV ratings, thruster count (1, 2, 4, 6), differential or vector steering, and electronic speed controllers (ESCs)."
-            )
-          )}
+          {currentStep === 3 && renderSuperClassAndCategoryLayout(3)}
 
           {/* STEP 4: BATTERY & POWER SYSTEM (03 POWER SYSTEM) */}
-          {currentStep === 4 && (
-            renderCategorySelectionList(
-              getCategoriesForGroups(["03 POWER SYSTEM", "POWER SYSTEM", "POWER"]),
-              "Battery, Solar & Power Distribution",
-              "Select battery pack capacity (mAh), voltage (S), multi-pack configuration (1P-4P), MPPT solar panels, BMS safeguards, and isolated power distribution rails."
-            )
-          )}
+          {currentStep === 4 && renderSuperClassAndCategoryLayout(4)}
 
           {/* STEP 5: GPS, COMMUNICATION, AUTONOMY & FAILSAFES (04, 05, 06, 10, 11) */}
-          {currentStep === 5 && (
-            renderCategorySelectionList(
-              getCategoriesForGroups([
-                "04 CONTROLLER",
-                "05 COMMUNICATION",
-                "06 NAVIGATION",
-                "10 AUTONOMY",
-                "11 SAFETY & FAILSAFE",
-                "CONTROLLER",
-                "COMMUNICATION",
-                "NAVIGATION",
-                "AUTONOMY",
-                "SAFETY",
-                "FAILSAFE"
-              ]),
-              "GPS, Autopilot, Telemetry & Safety Failsafes",
-              "Configure flight microcontrollers, telemetry radios (ELRS/LoRa/4G), RTK GNSS centimeter positioning, autonomous survey modes, and emergency failsafes."
-            )
-          )}
+          {currentStep === 5 && renderSuperClassAndCategoryLayout(5)}
 
           {/* STEP 6: SENSORS, BATHYMETRY, VISION, LOGGING & ADD-ONS (07, 08, 09, 12, 13, 14) */}
-          {currentStep === 6 && (
-            renderCategorySelectionList(
-              getCategoriesForGroups([
-                "07 SENSORS",
-                "08 BATHYMETRY",
-                "09 VISION & LIGHTING",
-                "12 DATA & LOGGING",
-                "13 DASHBOARD & APP",
-                "14 CUSTOM & ADD ON",
-                "SENSORS",
-                "BATHYMETRY",
-                "VISION",
-                "LIGHTING",
-                "DATA",
-                "LOGGING",
-                "DASHBOARD",
-                "APP",
-                "CUSTOM",
-                "ADD ON"
-              ]),
-              "Hydrographic Sonars, Sensors & Mission Payloads",
-              "Equip single-beam or multibeam echosounders, multiparameter water sondes, inspection cameras, data loggers, mission dashboard apps, and robotic add-ons.",
-              true
-            )
-          )}
+          {currentStep === 6 && renderSuperClassAndCategoryLayout(6)}
 
           {/* STEP 7: REVIEW COMPLETE CONFIGURATION & PRICE */}
           {currentStep === 7 && (

@@ -1950,6 +1950,15 @@ export const DEFAULT_CATEGORIES: ComponentCategory[] = [
     "is_multiple_allowed": false,
     "components": [
       {
+        "id": 1751,
+        "category_id": 39,
+        "name": "Warning",
+        "description": "Warning option for GPS Loss.",
+        "price_modifier": 350.0,
+        "weight": 0.8,
+        "is_active": true
+      },
+      {
         "id": 176,
         "category_id": 39,
         "name": "Hold Position",
