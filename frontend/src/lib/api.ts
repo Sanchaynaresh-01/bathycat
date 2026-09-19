@@ -33,6 +33,21 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor to handle expired or invalid credentials
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('auth-storage');
+      } catch (e) {
+        console.error("Failed to clear auth storage on 401", e);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const getProducts = async (): Promise<Product[]> => {
   const response = await api.get('/products/');
   return response.data;
